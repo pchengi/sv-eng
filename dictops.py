@@ -34,8 +34,8 @@ class DictOps:
 			with codecs.open(self.corpusjson,'r','utf-8') as infile:
 				self.mydict=json.load(infile,object_pairs_hook=OrderedDict)
 		except:
-			print 'no json'
-			donothing=1
+			print 'Corpus json file sve-eng.json not found. Initializing corpus from XDXF file'
+			self.readXdxf(dontread=1)
 	
 	def listWordstartswith(self,tolist):
 		self.readStore()
@@ -74,34 +74,39 @@ class DictOps:
 		
 	def removeWord(self,toremove):
 		self.readStore()
-		if self.mydict.__contains__(toremove.decode('utf-8')):
-			print "Word %s exists in the corpus"%(toremove)
+		decoded=toremove.decode('utf-8')
+		if self.mydict.__contains__(decoded):
+			print "Word %s exists in the corpus"%(decoded)
 			ctr=1
-			for meaning in self.mydict[toremove.decode('utf-8')]:
+			for meaning in self.mydict[decoded]:
 				print "%d. %s"%(ctr,meaning)
 				ctr+=1
 			resp=raw_input("Press 'R' to remove complete listing, or specify number to delete a specify meaning, any other key to quit.\n")
 			if resp == '':
 				return
 			if resp=='R' or resp=='r':
-				print 'you asked to remove the whole listing anyway'
-				self.mydict.pop(toremove.decode('utf-8'))
+				print 'Removing the listing entirely for %s.'%decoded
+				self.mydict.pop(decoded)
 				self.writeStore()
 				return
 			intresp=int(resp)
-			if intresp > 0 and intresp <= len(self.mydict[toremove.decode('utf-8')]):
-				popped=self.mydict[toremove.decode('utf-8')].pop(intresp-1)
-				print 'Removed %s'%(popped)
+			if intresp > 0 and intresp <= len(self.mydict[decoded]):
+				popped=self.mydict[decoded].pop(intresp-1)
+				print 'Removed %s.'%(popped)
 			else:
-				print 'ignoring'
+				print 'Ignoring.'
 				return
+			if len(self.mydict[decoded]) == 0:
+				self.mydict.pop(decoded)
+				print 'Removed %s as it had no remaining definitions.'%(decoded)
 		else:
-			print "Word %s does not exist in the corpus"%(toremove)
+			print "Word %s does not exist in the corpus."%(decoded)
 			return
 		self.writeStore()
 
-	def readXdxf(self):
-		self.readStore()
+	def readXdxf(self,dontread=0):
+		if dontread == 0:
+			self.readStore()
 		try:
 			tree=ET.parse(self.xdxfinp)
 		except:
