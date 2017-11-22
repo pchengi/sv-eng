@@ -20,6 +20,14 @@ class DictOps:
 		self.mydict=OrderedDict()
 		self.lpdict=OrderedDict()
 
+	def setupRef(self,refdict):
+		refdict['source']='local'
+		refdict['tense']='unspecified'
+		refdict['figureofspeech']='unspecified'
+		refdict['additionalattribute']='unspecified'
+		refdict['definitions']=list()
+		return refdict
+
 	def updateXdxffile(self):
 		xdxffile=urllib.URLopener()
 		try:
@@ -40,13 +48,13 @@ class DictOps:
 	def listWordstartswith(self,tolist):
 		self.readStore()
 		found=0
-		for word,meanings in self.mydict.iteritems():
+		for word,refobj in self.mydict.iteritems():
 			if tolist.startswith(word):
 				found=1
 				print "Possible related word %s exists in the corpus"%(word)
 				print 'input is %s, word in corpus is %s'%(tolist,word)
 				ctr=1
-				for meaning in meanings:
+				for meaning in refobj['definitions']:
 					print "%d. %s"%(ctr,meaning)
 					ctr+=1
 		if found == 0:
@@ -54,8 +62,8 @@ class DictOps:
 
 	def translateWord(self,totrans):
 		self.readStore()
-		for word, meanings in self.mydict.iteritems():
-			for meaning in meanings:
+		for word,refobj in self.mydict.iteritems():
+			for meaning in refobj['definitions']:
 				if totrans == meaning:
 					print "Possible match for %s: %s"%(totrans,word)
 	
@@ -63,9 +71,9 @@ class DictOps:
 		self.readStore()
 		if self.mydict.__contains__(tolist.decode('utf-8')):
 			print "Word %s exists in the corpus"%(tolist)
-			self.recordLookup(tolist,self.mydict[tolist.decode('utf-8')])
+			self.recordLookup(tolist,self.mydict[tolist.decode('utf-8')]['definitions'])
 			ctr=1
-			for meaning in self.mydict[tolist.decode('utf-8')]:
+			for meaning in self.mydict[tolist.decode('utf-8')]['definitions']:
 				print "%d. %s"%(ctr,meaning)
 				ctr+=1
 			return(0)
@@ -78,7 +86,7 @@ class DictOps:
 		if self.mydict.__contains__(decoded):
 			print "Word %s exists in the corpus"%(decoded)
 			ctr=1
-			for meaning in self.mydict[decoded]:
+			for meaning in self.mydict[decoded]['definitions']:
 				print "%d. %s"%(ctr,meaning)
 				ctr+=1
 			resp=raw_input("Press 'R' to remove complete listing, or specify number to delete a specify meaning, any other key to quit.\n")
@@ -90,13 +98,13 @@ class DictOps:
 				self.writeStore()
 				return
 			intresp=int(resp)
-			if intresp > 0 and intresp <= len(self.mydict[decoded]):
-				popped=self.mydict[decoded].pop(intresp-1)
+			if intresp > 0 and intresp <= len(self.mydict[decoded]['definitions']):
+				popped=self.mydict[decoded]['definitions'].pop(intresp-1)
 				print 'Removed %s.'%(popped)
 			else:
 				print 'Ignoring.'
 				return
-			if len(self.mydict[decoded]) == 0:
+			if len(self.mydict[decoded]['definitions']) == 0:
 				self.mydict.pop(decoded)
 				print 'Removed %s as it had no remaining definitions.'%(decoded)
 		else:
@@ -115,14 +123,16 @@ class DictOps:
 
 		self.root=tree.getroot()
 		for node in self.root[1]:
+			self.mydict[node[0].text]['source']='lexikon'
 			if not self.mydict.__contains__(node[0].text):
 				print 'new word found: %s'%(node[0].text)
-				self.mydict[node[0].text]=list()
+				refdict=OrderedDict()
+				self.mydict[node[0].text]=self.setupRef(refdict)
 			for ele in node[1]:
 				if ele.tag == 'dtrn':
-					if not self.mydict[node[0].text].__contains__(ele.text):
+					if not self.mydict[node[0].text]['definitions'].__contains__(ele.text):
 						print 'new definition %s found for word %s'%(ele.text,node[0].text)
-						self.mydict[node[0].text].append(ele.text)
+						self.mydict[node[0].text]['definitions'].append(ele.text)
 		try:
 			self.writeStore()
 			self.writeOuttxtfile()
@@ -159,11 +169,11 @@ class DictOps:
 	def writeOuttxtfile(self):
 		self.readStore()
 		with codecs.open(self.txtout,'w','utf-8') as outfile:
-			for key, val in self.mydict.iteritems():
+			for key, refdict in self.mydict.iteritems():
 				outfile.write(key)
 				outfile.write('\n')
 				dtrncount=1
-				for meaning in val:
+				for meaning in refdict['definitions']:
 					outfile.write("\t %d. %s\n"%(dtrncount,meaning))
 					dtrncount+=1
 
@@ -172,24 +182,31 @@ class DictOps:
 		if self.mydict.__contains__(toadd.decode('utf-8')):
 			print "Word %s already exists in the corpus"%(toadd)
 			ctr=1
-			for meaning in self.mydict[toadd.decode('utf-8')]:
+			for meaning in self.mydict[toadd.decode('utf-8')]['definitions']:
 				print "%d. %s"%(ctr,meaning)
 				ctr+=1
 			resp=raw_input('Do you wish to add a new meaning(N/y)\n')
 			if resp=='y' or resp=='Y':
 				newm=raw_input('Enter new meaning\n')
-				self.mydict[toadd.decode('utf-8')].append(newm)
+				self.mydict[toadd.decode('utf-8')]['definitions'].append(newm)
 			else:
 				return
 		else:
 			print "Word %s does not exist in the corpus"%(toadd)
-			self.mydict[toadd.decode('utf-8')]=list()
+			refdict=OrderedDict()
+			self.mydict[toadd.decode('utf-8')]=self.setupRef(refdict)
 			resp='y'
 			while resp == 'y':
 				newm=raw_input('Enter the meaning for this word\n')
-				self.mydict[toadd.decode('utf-8')].append(newm)
+				self.mydict[toadd.decode('utf-8')]['definitions'].append(newm)
 				resp=raw_input('Do you wish to add another meaning(N/y)\n')
 		self.writeStore()
+
+	def listLocalwords(self):
+		self.readStore()
+		for key,val in self.mydict.iteritems():
+			if val['source'] == 'local':
+				print "Word %s is present only locally"%(key)
 
 myobj=DictOps('sweeng.xdxf','lp.json','sve-eng.json','xdxf.txt','looked-up.txt')
 aparser=argparse.ArgumentParser(description='A tool to setup a Swedish-English dictionary and English-Swedish word translator, seeded with words from the Folkets Lexikon, provided by KTH. You can perform offline dictionary lookups (Swedish to English), translations (English to Swedish), and even add (or delete) additional words into the corpus.')
@@ -200,6 +217,7 @@ aparser.add_argument('-a', type=str,default='none',help='attempt lookup and if n
 aparser.add_argument('-l', type=str,default='none',help='lookup word and return even words that are a partial match. e.g looking up stenar will even return sten as a potential match. Exact matches if found are also logged to looked-up.txt, for easy reference/history') #list word meanings if found
 aparser.add_argument('-e', type=str,default='none',help='lookup word and only return a result if a perfect match was found.') #list word meanings if found
 aparser.add_argument('-u', type=str,nargs='?',default='none',help='update the XDXF file, from KTH. Requires a working internet connection.') #update file
+aparser.add_argument('-c', type=str,nargs='?',default='none',help='list words you have added locally, that can be potentially contributed the to Lexikon project.') #update file
 args=aparser.parse_args()
 removeword=args.r
 xmlread=args.x
@@ -208,6 +226,7 @@ addword=args.a
 listword=args.l
 exactword=args.e
 update=args.u
+contribute=args.c
 
 if update != 'none':
 	myobj.updateXdxffile()
@@ -231,3 +250,6 @@ if listword != 'none':
 
 if exactword != 'none':
 	myobj.listWord(exactword)
+
+if contribute != 'none':
+	myobj.listLocalwords()
