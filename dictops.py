@@ -252,7 +252,7 @@ class DictOps:
 		self.readStore(self.corpusjson)
 		for key,val in self.mydict.iteritems():
 			if val['source'] == 'local':
-				print "Word %s is present only locally"%(key) 
+				print "Word %s is present only locally"%(key)
 
 myobj=DictOps('sveeng.xdxf','engsve.xdxf','lp.json','sve-eng.json','eng-sve.json','xdxf.txt','looked-up.txt')
 
