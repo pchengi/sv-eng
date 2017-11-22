@@ -10,6 +10,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 #myobj=DictOps('sweeng.xdxf','lp.json','sve-eng.json','xdxf.txt','looked-up.txt')
+
 class DictOps:
 	def __init__(self,xdxfinp,lpjson,corpusjson,txtout,lookupout):
 		self.xdxfinp=xdxfinp
@@ -123,11 +124,13 @@ class DictOps:
 
 		self.root=tree.getroot()
 		for node in self.root[1]:
-			self.mydict[node[0].text]['source']='lexikon'
 			if not self.mydict.__contains__(node[0].text):
 				print 'new word found: %s'%(node[0].text)
 				refdict=OrderedDict()
 				self.mydict[node[0].text]=self.setupRef(refdict)
+				self.mydict[node[0].text]['source']='lexikon'
+			else:
+				self.mydict[node[0].text]['source']='lexikon'
 			for ele in node[1]:
 				if ele.tag == 'dtrn':
 					if not self.mydict[node[0].text]['definitions'].__contains__(ele.text):
