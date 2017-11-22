@@ -1,0 +1,16 @@
+Functions in class Dictops
+
+updateXdxffile
+readStore
+listWordstartswith
+translateWord
+listWord
+removeWord
+readXdxf
+recordLookup
+writeStore
+writeOuttxtfile
+setupRef
+listLocalwords
+addWord
+
