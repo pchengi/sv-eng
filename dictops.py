@@ -124,11 +124,13 @@ class DictOps:
 
 		self.root=tree.getroot()
 		for node in self.root[1]:
-			self.mydict[node[0].text]['source']='lexikon'
 			if not self.mydict.__contains__(node[0].text):
 				print 'new word found: %s'%(node[0].text)
 				refdict=OrderedDict()
 				self.mydict[node[0].text]=self.setupRef(refdict)
+				self.mydict[node[0].text]['source']='lexikon'
+			else:
+				self.mydict[node[0].text]['source']='lexikon'
 			for ele in node[1]:
 				if ele.tag == 'dtrn':
 					if not self.mydict[node[0].text]['definitions'].__contains__(ele.text):
@@ -207,7 +209,7 @@ class DictOps:
 		self.readStore()
 		for key,val in self.mydict.iteritems():
 			if val['source'] == 'local':
-				print "Word %s is present only locally"%(key) 
+				print "Word %s is present only locally"%(key)
 
 myobj=DictOps('sweeng.xdxf','lp.json','sve-eng.json','xdxf.txt','looked-up.txt')
 aparser=argparse.ArgumentParser(description='A tool to setup a Swedish-English dictionary and English-Swedish word translator, seeded with words from the Folkets Lexikon, provided by KTH. You can perform offline dictionary lookups (Swedish to English), translations (English to Swedish), and even add (or delete) additional words into the corpus.')
