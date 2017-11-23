@@ -3,6 +3,7 @@ import codecs
 import xml.etree.ElementTree as ET
 import sys,argparse
 from collections import OrderedDict
+from hashlib import sha256
 import simplejson as json
 from numbers import Number
 import urllib
@@ -41,6 +42,30 @@ class DictOps:
 		except:
 			print 'Unable to fetch XDXF file. Are you connected to the internet?'
 			sys.exit(-1)
+
+		cksums=OrderedDict()
+		try:
+			with open('sha256sums','r') as infile:
+				lines=infile.readlines()
+			for line in lines:
+				cksums[line.split(' ')[1].split('\n')[0]]=line.split(' ')[0]
+			changed=0
+			for file in cksums:
+				with open(file,'rb') as infile:
+					sha256sum=sha256(infile.read()).hexdigest()
+				if cksums[file] != sha256sum:
+					print "File %s has changed!"%(file)
+					cksums[file]=sha256sum
+					changed=1
+			if changed == 0:
+				print "No changes found in the XDXF files"
+			else:
+				with open('sha256sums','w') as outfile:
+					for file in cksums:
+						outfile.write("%s %s\n"%(cksums[file],file))
+				self.readXdxf()
+		except:
+			print "Could not look up old checksums"
 
 	def readStore(self, jsonfile):
 		try:
