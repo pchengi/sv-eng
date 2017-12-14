@@ -288,7 +288,7 @@ aparser.add_argument('-t', type=str,default='none',help='translate from English 
 aparser.add_argument('-a', type=str,default='none',help='attempt lookup and if not found, manually add to the word corpus, if it was not present already.') #lookup and add a new word if not found
 aparser.add_argument('-l', type=str,default='none',help='lookup word and return even words that are a partial match. e.g looking up stenar will even return sten as a potential match. Exact matches if found are also logged to looked-up.txt, for easy reference/history') #list word meanings if found
 aparser.add_argument('-e', type=str,default='none',help='lookup word and only return a result if a perfect match was found.') #list word meanings if found
-aparser.add_argument('-u', type=str,nargs='?',default='none',help='update the XDXF file, from KTH. Requires a working internet connection.') #update file
+aparser.add_argument("-u", "--update",type=str,nargs='?',default='none',help='update the XDXF file, from KTH. Requires a working internet connection.') #update file
 aparser.add_argument('-c', type=str,nargs='?',default='none',help='list words you have added locally, that can be potentially contributed the to Lexikon project.') #update file
 args=aparser.parse_args()
 removeword=args.r
@@ -297,7 +297,7 @@ translateword=args.t
 addword=args.a
 listword=args.l
 exactword=args.e
-update=args.u
+update=args.update
 contribute=args.c
 
 if update != 'none':
