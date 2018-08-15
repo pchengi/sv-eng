@@ -6,9 +6,9 @@ from collections import OrderedDict
 from hashlib import sha256
 import simplejson as json
 from numbers import Number
-import urllib
-reload(sys)
-sys.setdefaultencoding('utf-8')
+import urllib.request, urllib.parse, urllib.error
+#reload(sys)
+#sys.setdefaultencoding('utf-8')
 
 #myobj=DictOps('sveeng.xdxf','lp.json','sve-eng.json','xdxf.txt','looked-up.txt')
 
@@ -34,13 +34,13 @@ class DictOps:
 		return refdict
 
 	def updateXdxffile(self):
-		xdxffile=urllib.URLopener()
+		xdxffile=urllib.request.URLopener()
 		try:
 			xdxffile.retrieve('http://folkets-lexikon.csc.kth.se/folkets/folkets_sv_en_public.xdxf','sveeng.xdxf')
 			xdxffile.retrieve('http://folkets-lexikon.csc.kth.se/folkets/folkets_en_sv_public.xdxf','engsve.xdxf')
-			print 'Successfully updated the XDXF word definitions file'
+			print('Successfully updated the XDXF word definitions file')
 		except:
-			print 'Unable to fetch XDXF file. Are you connected to the internet?'
+			print('Unable to fetch XDXF file. Are you connected to the internet?')
 			sys.exit(-1)
 
 		cksums=OrderedDict()
@@ -54,18 +54,18 @@ class DictOps:
 				with open(file,'rb') as infile:
 					sha256sum=sha256(infile.read()).hexdigest()
 				if cksums[file] != sha256sum:
-					print "File %s has changed!"%(file)
+					print("File %s has changed!"%(file))
 					cksums[file]=sha256sum
 					changed=1
 			if changed == 0:
-				print "No changes found in the XDXF files"
+				print("No changes found in the XDXF files")
 			else:
 				with open('sha256sums','w') as outfile:
 					for file in cksums:
 						outfile.write("%s %s\n"%(cksums[file],file))
 				self.readXdxf()
 		except:
-			print "Could not look up old checksums"
+			print("Could not look up old checksums")
 
 	def readStore(self, jsonfile):
 		try:
@@ -75,23 +75,23 @@ class DictOps:
 				else:
 					self.engdict=json.load(infile,object_pairs_hook=OrderedDict)
 		except:
-			print 'json file %s not found. Initializing from XDXF file'%(jsonfile)
+			print('json file %s not found. Initializing from XDXF file'%(jsonfile))
 			self.readXdxf(dontread=1)
 	
 	def listWordstartswith(self,tolist):
 		self.readStore(self.corpusjson)
 		found=0
-		for word,refobj in self.mydict.iteritems():
+		for word,refobj in self.mydict.items():
 			if tolist.startswith(word):
 				found=1
-				print "Possible related word %s exists in the corpus"%(word)
-				print 'input is %s, word in corpus is %s'%(tolist,word)
+				print("Possible related word %s exists in the corpus"%(word))
+				print('input is %s, word in corpus is %s'%(tolist,word))
 				ctr=1
 				for meaning in refobj['definitions']:
-					print "%d. %s"%(ctr,meaning)
+					print("%d. %s"%(ctr,meaning))
 					ctr+=1
 		if found == 0:
-			print "Word %s does not exist in the corpus"%(tolist)
+			print("Word %s does not exist in the corpus"%(tolist))
 
 	def translateWord(self,totrans):
 		self.readStore(self.engjson)
@@ -99,26 +99,26 @@ class DictOps:
 		if self.engdict.__contains__(decoded):
 			ctr=1
 			for meaning in self.engdict[decoded]['definitions']:
-				print "%d. %s"%(ctr,meaning)
+				print("%d. %s"%(ctr,meaning))
 				ctr+=1
 			return(0)
 		else:
 			self.readStore(self.corpusjson)
-			for word,refobj in self.mydict.iteritems():
+			for word,refobj in self.mydict.items():
 				for meaning in refobj['definitions']:
 					if totrans == meaning:
-						print "Possible match for %s: %s"%(totrans,word)
+						print("Possible match for %s: %s"%(totrans,word))
 			return(0)
 	
 	def listWord(self,tolist):
 		self.readStore(self.corpusjson)
 		decoded=tolist.decode('utf-8')
 		if self.mydict.__contains__(decoded):
-			print "Word %s exists in the corpus"%(tolist)
+			print("Word %s exists in the corpus"%(tolist))
 			self.recordLookup(tolist,self.mydict[decoded]['definitions'])
 			ctr=1
 			for meaning in self.mydict[decoded]['definitions']:
-				print "%d. %s"%(ctr,meaning)
+				print("%d. %s"%(ctr,meaning))
 				ctr+=1
 			return(0)
 		else:
@@ -128,31 +128,31 @@ class DictOps:
 		self.readStore(self.corpusjson)
 		decoded=toremove.decode('utf-8')
 		if self.mydict.__contains__(decoded):
-			print "Word %s exists in the corpus"%(decoded)
+			print("Word %s exists in the corpus"%(decoded))
 			ctr=1
 			for meaning in self.mydict[decoded]['definitions']:
-				print "%d. %s"%(ctr,meaning)
+				print("%d. %s"%(ctr,meaning))
 				ctr+=1
-			resp=raw_input("Press 'R' to remove complete listing, or specify number to delete a specify meaning, any other key to quit.\n")
+			resp=input("Press 'R' to remove complete listing, or specify number to delete a specify meaning, any other key to quit.\n")
 			if resp == '':
 				return
 			if resp=='R' or resp=='r':
-				print 'Removing the listing entirely for %s.'%decoded
+				print('Removing the listing entirely for %s.'%decoded)
 				self.mydict.pop(decoded)
 				self.writeStore(self.corpusjson)
 				return
 			intresp=int(resp)
 			if intresp > 0 and intresp <= len(self.mydict[decoded]['definitions']):
 				popped=self.mydict[decoded]['definitions'].pop(intresp-1)
-				print 'Removed %s.'%(popped)
+				print('Removed %s.'%(popped))
 			else:
-				print 'Ignoring.'
+				print('Ignoring.')
 				return
 			if len(self.mydict[decoded]['definitions']) == 0:
 				self.mydict.pop(decoded)
-				print 'Removed %s as it had no remaining definitions.'%(decoded)
+				print('Removed %s as it had no remaining definitions.'%(decoded))
 		else:
-			print "Word %s does not exist in the corpus."%(decoded)
+			print("Word %s does not exist in the corpus."%(decoded))
 			return
 		self.writeStore(self.corpusjson)
 
@@ -165,7 +165,7 @@ class DictOps:
 			engtree=ET.parse(self.engxdxfinp)
 			
 		except:
-			print "Error parsing xdxf input file. Aborting."
+			print("Error parsing xdxf input file. Aborting.")
 			sys.exit(-1)
 
 		self.root=tree.getroot()
@@ -173,7 +173,7 @@ class DictOps:
 
 		for node in self.root[1]:
 			if not self.mydict.__contains__(node[0].text):
-				print 'new word found: %s'%(node[0].text)
+				print('new word found: %s'%(node[0].text))
 				refdict=OrderedDict()
 				self.mydict[node[0].text]=self.setupRef(refdict)
 				self.mydict[node[0].text]['source']='lexikon'
@@ -182,12 +182,12 @@ class DictOps:
 			for ele in node[1]:
 				if ele.tag == 'dtrn':
 					if not self.mydict[node[0].text]['definitions'].__contains__(ele.text):
-						print 'new definition %s found for word %s'%(ele.text,node[0].text)
+						print('new definition %s found for word %s'%(ele.text,node[0].text))
 						self.mydict[node[0].text]['definitions'].append(ele.text)
 
 		for node in self.engroot[1]:
 			if not self.engdict.__contains__(node[0].text):
-				print 'new word found: %s'%(node[0].text)
+				print('new word found: %s'%(node[0].text))
 				refdict=OrderedDict()
 				self.engdict[node[0].text]=self.setupRef(refdict)
 				self.engdict[node[0].text]['source']='lexikon'
@@ -197,15 +197,15 @@ class DictOps:
 			for ele in node[1]:
 				if ele.tag == 'dtrn':
 					if not self.engdict[node[0].text]['definitions'].__contains__(ele.text):
-						print 'new definition %s found for word %s'%(ele.text,node[0].text)
+						print('new definition %s found for word %s'%(ele.text,node[0].text))
 						self.engdict[node[0].text]['definitions'].append(ele.text)
 		try:
 			self.writeStore(self.corpusjson)
 			self.writeStore(self.engjson)
 			self.writeOuttxtfile()
-			print 'Successfully wrote out de-duped word corpus and xdxf.txt file'
+			print('Successfully wrote out de-duped word corpus and xdxf.txt file')
 		except:
-			print 'Could not write out word corpus or/and xdxf.txt file'
+			print('Could not write out word corpus or/and xdxf.txt file')
 
 	def recordLookup(self,word,meanings):
 		try:
@@ -217,7 +217,7 @@ class DictOps:
 			return
 		self.lpdict[word]=meanings
 		with codecs.open(self.lookupout,'w','utf-8') as outfile:
-			for word,meanings in self.lpdict.iteritems():
+			for word,meanings in self.lpdict.items():
 				outfile.write(word)
 				outfile.write(':\t')
 				ctr=1
@@ -239,7 +239,7 @@ class DictOps:
 	def writeOuttxtfile(self):
 		self.readStore(self.corpusjson)
 		with codecs.open(self.txtout,'w','utf-8') as outfile:
-			for key, refdict in self.mydict.iteritems():
+			for key, refdict in self.mydict.items():
 				outfile.write(key)
 				outfile.write('\n')
 				dtrncount=1
@@ -251,33 +251,33 @@ class DictOps:
 		decoded=toadd.decode('utf-8')
 		self.readStore(self.corpusjson)
 		if self.mydict.__contains__(decoded):
-			print "Word %s already exists in the corpus"%(toadd)
+			print("Word %s already exists in the corpus"%(toadd))
 			ctr=1
 			for meaning in self.mydict[decoded]['definitions']:
-				print "%d. %s"%(ctr,meaning)
+				print("%d. %s"%(ctr,meaning))
 				ctr+=1
-			resp=raw_input('Do you wish to add a new meaning(N/y)\n')
+			resp=input('Do you wish to add a new meaning(N/y)\n')
 			if resp=='y' or resp=='Y':
-				newm=raw_input('Enter new meaning\n')
+				newm=input('Enter new meaning\n')
 				self.mydict[decoded]['definitions'].append(newm)
 			else:
 				return
 		else:
-			print "Word %s does not exist in the corpus"%(toadd)
+			print("Word %s does not exist in the corpus"%(toadd))
 			refdict=OrderedDict()
 			self.mydict[decoded]=self.setupRef(refdict)
 			resp='y'
 			while resp == 'y':
-				newm=raw_input('Enter the meaning for this word\n')
+				newm=input('Enter the meaning for this word\n')
 				self.mydict[decoded]['definitions'].append(newm)
-				resp=raw_input('Do you wish to add another meaning(N/y)\n')
+				resp=input('Do you wish to add another meaning(N/y)\n')
 		self.writeStore(self.corpusjson)
 
 	def listLocalwords(self):
 		self.readStore(self.corpusjson)
-		for key,val in self.mydict.iteritems():
+		for key,val in self.mydict.items():
 			if val['source'] == 'local':
-				print "Word %s is present only locally"%(key)
+				print("Word %s is present only locally"%(key))
 
 myobj=DictOps('sveeng.xdxf','engsve.xdxf','lp.json','sve-eng.json','eng-sve.json','xdxf.txt','looked-up.txt')
 
