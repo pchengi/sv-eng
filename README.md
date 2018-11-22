@@ -1,5 +1,5 @@
 Requirements:
-lxml, simplejson
+lxml
 
 usage: dictops.py [-h] [-r R] [-x [X]] [-t T] [-a A] [-l L] [-e E] [-u [U]]
 

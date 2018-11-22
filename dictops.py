@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import sys,argparse
 from collections import OrderedDict
 from hashlib import sha256
-import simplejson as json
+import json
 from numbers import Number
 import urllib
 reload(sys)
