@@ -92,6 +92,7 @@ class DictOps:
     def translateWord(self,totrans):
         self.readStore(self.engjson)
         if self.engdict.__contains__(totrans):
+            self.recordLookup(totrans,self.engdict[totrans]['definitions'])
             ctr=1
             for meaning in self.engdict[totrans]['definitions']:
                 print("%d. %s"%(ctr,meaning))
@@ -116,7 +117,7 @@ class DictOps:
                     print("%d. %s"%(ctr,meaning))
                     ctr+=1
                 if len(self.mydict[tolist]['synonyms']) > 0:
-                    print("Synonyms: ",end='')
+                    print("Synonyms: ")
                 syns=''
                 for syn in self.mydict[tolist]['synonyms']:
                     syns+="%s,"%syn
@@ -129,6 +130,9 @@ class DictOps:
                     for meaning in self.mydict[syn]['definitions']:
                         print("%d. %s"%(ctr,meaning))
                         ctr+=1
+            for meaning in self.mydict[tolist]['definitions']:
+                print("%d. %s"%(ctr,meaning))
+                ctr+=1
             return(0)
         else:
             return(-1)
