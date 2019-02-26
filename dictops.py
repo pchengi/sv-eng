@@ -106,7 +106,7 @@ class DictOps:
                         print("Possible match for %s: %s"%(totrans,word))
             return(0)
     
-    def listWord(self,tolist):
+    def listWord(self,tolist,recurse):
         self.readStore(self.corpusjson)
         if self.mydict.__contains__(tolist):
             print("Word %s exists in the corpus"%(tolist))
@@ -123,18 +123,19 @@ class DictOps:
                     syns+="%s,"%syn
                 print(syns.rstrip(','),end='')
                 print()
-            else:
+                return(0)
+            elif len(self.mydict[tolist]['synonyms']) > 0:
                 for syn in self.mydict[tolist]['synonyms']:
                     print("Synonym found: %s"%syn)
                     ctr=1
-                    for meaning in self.mydict[syn]['definitions']:
-                        print("%d. %s"%(ctr,meaning))
-                        ctr+=1
-            for meaning in self.mydict[tolist]['definitions']:
-                print("%d. %s"%(ctr,meaning))
-                ctr+=1
-            return(0)
+                return(0)
         else:
+            for term in self.mydict:
+                if self.mydict[term]['synonyms'].__contains__(tolist):
+                    print("Synonym of %s."%term)
+                    if recurse == 1:
+                        self.listWord(term,recurse=0)
+                        return(0)
             return(-1)
         
     def removeWord(self,toremove):
@@ -344,7 +345,7 @@ if removeword != 'none':
     sys.exit(0)
 
 if listword != 'none':
-    ret=myobj.listWord(listword)
+    ret=myobj.listWord(listword,recurse=1)
     if ret != 0:
         myobj.listWordstartswith(listword)
     sys.exit(0)
