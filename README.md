@@ -25,3 +25,22 @@ optional arguments:
   -u [U]      update the XDXF file, from KTH. Requires a working internet
               connection.
 
+
+## Update definitions
+
+- Execute dictops.py -u to update the XDXF files from KTH.
+
+## Description of files used
+
+- sveeng.xdxf: Swedish to English listing, curated by KTH under the lexin programme.
+- engsve.xdxf: English to Swedish listing, curated by KTH under the lexin programme.
+- lp.json: Stores words previously looked up, using dictops.
+- looked-up.txt: Human-readable version of previously looked up words.
+- sve-eng.json aka corpus: JSON store of Swedish word definitions, mainly comprised of words from lexikon, but also includes locally added words.
+- eng-sve.json:
+
+## Usage
+
+- First thing to do is to download the XDXF files, which is done by dictops.py -u; this also sets up the checksum file.
+
+- Write out the JSON files, by invoking dictops.py -x.
