@@ -373,18 +373,18 @@ aparser=argparse.ArgumentParser(description='A tool to setup a Swedish-English d
 aparser.add_argument('-r', type=str,default='none',help='remove the specified word from the word corpus.') #remove
 aparser.add_argument('-x', type=str,nargs='?',default='none',help='reread XDXF file and write out a new text-listing.') #read xml and write-out txt
 aparser.add_argument('-t', default=False,nargs='?',help='translate from English to Swedish.') #translate word
-aparser.add_argument('-a', default=False,nargs='?',help='attempt lookup and if not found, manually add to the word corpus, if it was not present already. --input-file can be used for non-interactive additions') #lookup and add a new word if not found
-aparser.add_argument('-l', type=str,default='none',help='lookup word and return even words that are a partial match. e.g looking up stenar will even return sten as a potential match. Exact matches if found are also logged to looked-up.txt, for easy reference/history') #list word meanings if found
+aparser.add_argument('-a', default=False,nargs='?',help='attempt lookup and if not found, manually add to the word corpus, if it was not present already. --input-file can be used for non-interactive additions.') #lookup and add a new word if not found
+aparser.add_argument('-l', type=str,default='none',help='lookup word and return even words that are a partial match. e.g looking up stenar will even return sten as a potential match. Exact matches if found are also logged to looked-up.txt, for easy reference/history.') #list word meanings if found
 aparser.add_argument('-e', '--exact-word', default=False, nargs='?',help='lookup word and only return a result if a perfect match was found.') #list word meanings if found
 aparser.add_argument("-u", "--update",type=str,nargs='?',default='none',help='update the XDXF file, from KTH. Requires a working internet connection.') #update file
 aparser.add_argument('-c', type=str,nargs='?',default='none',help='list words you have added locally, that can be potentially contributed the to Lexikon project.') #update file
-aparser.add_argument('-s', '--silent', default=False,action='store_true')
-aparser.add_argument('--backup-local', action='store_true')
-aparser.add_argument('--restore-local', action='store_true')
-aparser.add_argument('-b','--bulk-lookup', nargs='?', default=False)
-aparser.add_argument('-i','--input-file', nargs=1, default=False)
-aparser.add_argument('--invert-match', action='store_true',default=False)
-aparser.add_argument('--source',default=None,nargs='?')
+aparser.add_argument('-s', '--silent', default=False,action='store_true',help='the looked up word is echoed, instead of showing the meaning, if the word exists in the corpus.')
+aparser.add_argument('--backup-local', action='store_true',help='backs up your locally added words into localwords.json.')
+aparser.add_argument('--restore-local', action='store_true',help='restores local words to the corpus from localwords.json.')
+aparser.add_argument('-b','--bulk-lookup', nargs='?', default=False,help='multiple words can be looked up while only doing a single read of the corpus; needs a comma-seperated list of words, or the use of the --input-file option.')
+aparser.add_argument('-i','--input-file', nargs=1, default=False,help='input file containing words for bulk-lookup, addition, etc.')
+aparser.add_argument('--invert-match', action='store_true',default=False,help='lists only words that are not present in the corpus. Requires the use of --silent.')
+aparser.add_argument('--source',default=None,nargs='?',help='used to specify a source when adding new words to the corpus.')
 args=aparser.parse_args()
 removeword=args.r
 xmlread=args.x
