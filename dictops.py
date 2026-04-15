@@ -156,8 +156,8 @@ class DictOps:
                     ctr=1
                 return(0)
         else:
-            if silent:
-                return(-1)
+            #if silent:
+            return(-1)
             for key,val in self.mydict.items():
                 if len(val['synonyms'])>0:
                     if tolist in val['synonyms']:
@@ -310,7 +310,7 @@ class DictOps:
                     outfile.write("\t %d. %s\n"%(dtrncount,meaning))
                     dtrncount+=1
 
-    def addWord(self,toadd,meaning=None,noninteractive=False):
+    def addWord(self,toadd,meaning=None,noninteractive=False,source=None):
         if self.mydict.__contains__(toadd):
             print("Word %s already exists in the corpus"%(toadd))
             if noninteractive:
@@ -328,6 +328,8 @@ class DictOps:
         else:
             refdict=OrderedDict()
             self.mydict[toadd]=self.setupRef(refdict)
+            if source is not None:
+                self.mydict[toadd]['source'] = source
             if noninteractive:
                 self.mydict[toadd]['definitions'].append(meaning)
                 return
@@ -382,6 +384,7 @@ aparser.add_argument('--restore-local', action='store_true')
 aparser.add_argument('-b','--bulk-lookup', nargs='?', default=False)
 aparser.add_argument('-i','--input-file', nargs=1, default=False)
 aparser.add_argument('--invert-match', action='store_true',default=False)
+aparser.add_argument('--source',default=None,nargs='?')
 args=aparser.parse_args()
 removeword=args.r
 xmlread=args.x
@@ -397,6 +400,7 @@ silent=args.silent
 inputfile=args.input_file
 bulklookup=args.bulk_lookup
 invertmatch=args.invert_match
+sourceval=args.source
 if invertmatch:
     if not silent:
         print("--invert-match requires the usage of the --silent flag.")
@@ -433,10 +437,10 @@ if addword is not False:
             word,meaning=cleanedline.split(':')
             if meaning == '':
                 meaning = 'placeholder_text'
-            myobj.addWord(word,meaning,True)
+            myobj.addWord(word,meaning,True,sourceval)
         myobj.writeStore(myobj.corpusjson)
         sys.exit(0)
-    myobj.addWord(addword)
+    myobj.addWord(addword,False,sourceval)
     myobj.writeStore(myobj.corpusjson)
     sys.exit(0)
 
