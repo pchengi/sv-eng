@@ -316,7 +316,7 @@ class DictOps:
 
     def addWord(self,toadd,meaning=None,noninteractive=False,source=None):
         if self.mydict.__contains__(toadd):
-            print("Word %s already exists in the corpus"%(toadd))
+            print("Word %s already exists in the corpus."%(toadd))
             if noninteractive:
                 return
             ctr=1
@@ -335,9 +335,10 @@ class DictOps:
             if sourceval is not None:
                 self.mydict[toadd]['source'] = source
             if noninteractive:
+                print("Word %s added to the corpus."%(toadd))
                 self.mydict[toadd]['definitions'].append(meaning)
                 return
-            print("Word %s does not exist in the corpus"%(toadd))
+            print("Word %s does not exist in the corpus."%(toadd))
             resp='y'
             while resp == 'y':
                 newm=input('Enter the meaning for this word\n')
