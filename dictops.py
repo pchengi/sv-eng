@@ -131,9 +131,13 @@ class DictOps:
                         print("Possible match for %s: %s"%(totrans,word))
             return(0)
     
-    def listWord(self,tolist,silent,recurse):
+    def listWord(self,tolist,silent,debug=False,recurse=0):
         if self.mydict.__contains__(tolist):
             if silent:
+                return(0)
+            if debug:
+                print("looking up %s"%tolist)
+                print(self.mydict[tolist])
                 return(0)
             print("Word %s exists in the corpus"%(tolist))
             self.recordLookup(tolist,self.mydict[tolist]['definitions'])
@@ -165,7 +169,7 @@ class DictOps:
                             return(0)
                         print("Synonym of %s."%key)
                     if recurse == 1:
-                        self.listWord(term,silent,recurse=0)
+                        self.listWord(term,silent,debug,recurse=0)
                         return(0)
             return(-1)
         
@@ -328,7 +332,7 @@ class DictOps:
         else:
             refdict=OrderedDict()
             self.mydict[toadd]=self.setupRef(refdict)
-            if source is not None:
+            if sourceval is not None:
                 self.mydict[toadd]['source'] = source
             if noninteractive:
                 self.mydict[toadd]['definitions'].append(meaning)
@@ -349,7 +353,7 @@ class DictOps:
 
     def chainfeeder(self,stringorfile):
         if type(stringorfile) == list:
-            with open(listorfile[0]) as inp:
+            with open(stringorfile[0]) as inp:
                 lines=inp.readlines()
             for line in lines:
                 word=line.split('\n')[0].lower()
@@ -370,10 +374,11 @@ class DictOps:
 dirpath = os.path.dirname(os.path.realpath(__file__))
 myobj=DictOps(dirpath+'/sveeng.xdxf',dirpath+'/engsve.xdxf',dirpath+'/lp.json',dirpath+'/sve-eng.json',dirpath+'/eng-sve.json',dirpath+'/xdxf.txt',dirpath+'/looked-up.txt',dirpath+'/localwords.json',dirpath)
 aparser=argparse.ArgumentParser(description='A tool to setup a Swedish-English dictionary and English-Swedish word translator, seeded with words from the Folkets Lexikon, provided by KTH. You can perform offline dictionary lookups (Swedish to English), translations (English to Swedish), and even add (or delete) additional words into the corpus.')
-aparser.add_argument('-r', '--remove',type=str,default=False,help='remove the specified word from the word corpus.') #remove
+aparser.add_argument('-r', '--remove',type=str,default=False,nargs='?',help='remove the specified word from the word corpus.') #remove
 aparser.add_argument('-x','--xml-parse', default=False, action='store_true',help='reread XDXF file and write out a new text-listing.') #read xml and write-out txt
 aparser.add_argument('-t', '--translate-to-eng', default=False,nargs='?',help='translate from English to Swedish.') #translate word
 aparser.add_argument('-a', '--add', default=False,nargs='?',help='attempt lookup and if not found, manually add to the word corpus, if it was not present already. --input-file can be used for non-interactive additions.') #lookup and add a new word if not found
+aparser.add_argument('-d','--debug', default=False, action='store_true',help='debug flag to turn on more verbose messages and detailed output.') #read xml and write-out txt
 aparser.add_argument('-l', '--lookup', type=str,default=False,help='lookup word and return even words that are a partial match. e.g looking up stenar will even return sten as a potential match. Exact matches if found are also logged to looked-up.txt, for easy reference/history.') #list word meanings if found
 aparser.add_argument('-e', '--exact-word', default=False, nargs='?',help='lookup word and only return a result if a perfect match was found.') #list word meanings if found
 aparser.add_argument("-u", "--update",default=False,action='store_true',help='update the XDXF file, from KTH. Requires a working internet connection.') #update file
@@ -382,12 +387,17 @@ aparser.add_argument('-s', '--silent', default=False,action='store_true',help='t
 aparser.add_argument('-b','--backup-local', action='store_true',help='backs up your locally added words into localwords.json.')
 aparser.add_argument('--restore-local', action='store_true',help='restores local words to the corpus from localwords.json.')
 aparser.add_argument('-m','--multi-value', nargs='?', default=False,help='multiple words can be looked up while only doing a single read of the corpus; needs a comma-seperated list of words, or the use of the --input-file option.')
-aparser.add_argument('-i','--input-file', nargs=1, default=False,help='input file containing words for bulk-lookup, addition, etc.')
+aparser.add_argument('-i','--input-file', nargs=1, default=False,help='input file containing words for multi-value, addition, etc.')
 aparser.add_argument('--invert-match', action='store_true',default=False,help='lists only words that are not present in the corpus. Requires the use of --silent.')
+aparser.add_argument('-p','--print-words', action='store_true',default=False,help='prints all of the words in the store. --source can be used to filter the results by source.')
+aparser.add_argument('-w','--words-count', action='store_true',default=False,help='prints the count of all of the words in the store. --source can be used to filter the results by source.')
 aparser.add_argument('--source',default=None,help='used to specify a source when adding new words to the corpus.')
 args=aparser.parse_args()
 removeword=args.remove
 xmlread=args.xml_parse
+debug=args.debug
+printwords=args.print_words
+wordscount=args.words_count
 translateword=args.translate_to_eng
 addword=args.add
 listword=args.lookup
@@ -401,6 +411,29 @@ inputfile=args.input_file
 bulklookup=args.multi_value
 invertmatch=args.invert_match
 sourceval=args.source
+if printwords:
+    myobj.readStore(myobj.corpusjson)
+    if sourceval is None:
+        for key,val in myobj.mydict.items():
+            print(key)
+        sys.exit(0)
+    for key,val in myobj.mydict.items():
+        if val['source'] == sourceval:
+            print(key)
+    sys.exit(0)
+if wordscount:
+    myobj.readStore(myobj.corpusjson)
+    if sourceval is None:
+        wc=len(myobj.mydict)
+        print("Total words in corpus:%d"%wc)
+        sys.exit(0)
+    print("Filtering corpus by selected source: %s"%sourceval)
+    nummatches=0
+    for key,val in myobj.mydict.items():
+        if val['source'] == sourceval:
+            nummatches+=1
+    print("Total words in corpus, by selected source %s: %d"%(sourceval,nummatches))
+    sys.exit(0)
 if invertmatch:
     if not silent:
         print("--invert-match requires the usage of the --silent flag.")
@@ -408,7 +441,7 @@ if invertmatch:
 if bulklookup is not False:
     if bulklookup == None:
         if inputfile is False:
-            print("--bulk-lookup option requires either a comma-separated list of words to lookup, or an input file, with a single word on each line, specified with the --input-file option.")
+            print("--multi-value option requires either a comma-separated list of words to lookup, or an input file, with a single word on each line, specified with the --input-file option.")
             sys.exit(-1)
         bulklookup=inputfile
         
@@ -454,7 +487,7 @@ if removeword is not False:
     sys.exit(0)
 
 if listword is not False:
-    ret=myobj.listWord(listword,silent,recurse=1)
+    ret=myobj.listWord(listword,silent,debug,recurse=1)
     if ret != 0:
         myobj.listWordstartswith(listword)
     sys.exit(0)
@@ -466,7 +499,7 @@ if exactword is not False:
             sys.exit(-1)
         myobj.readStore(myobj.corpusjson)
         for lookup in myobj.chainfeeder(bulklookup):
-            ret=myobj.listWord(lookup,silent,recurse=0)
+            ret=myobj.listWord(lookup,silent,debug,recurse=0)
             if ret == 0 and invertmatch is False:
                 if silent:
                     print("%s"%lookup)
@@ -477,7 +510,7 @@ if exactword is not False:
     if not silent:
         print("regular single lookup of word %s"%exactword)
     myobj.readStore(myobj.corpusjson)
-    ret=myobj.listWord(exactword,silent,recurse=0)
+    ret=myobj.listWord(exactword,silent,debug,recurse=0)
     if ret == 0 and invertmatch is False:
         if silent:
             print("%s"%exactword)
@@ -491,7 +524,7 @@ if exactword is not False:
 if translateword is not False:
     if translateword is None:
         if bulklookup is False:
-            print("-t requires a word to be looked up, or the usage of the --bulk-lookup flag, indicating multi-word lookup.")
+            print("-t requires a word to be looked up, or the usage of the --multi-value flag, indicating multi-word lookup.")
             sys.exit(-1)
         myobj.readStore(myobj.engjson)
         myobj.readStore(myobj.corpusjson)

@@ -1,9 +1,7 @@
 ## To-do
 
 1. synonyms should have their own JSON file, making a lookup simple and fast.
-7. --dump-words option; should allow to be combined with the --source flag.
-8. --word-count option; should allow to be combined with the --source flag.
-
+10.
 ## Done
 
 5. Usage of --invert-match should only be possible when --silent is on; done
@@ -12,3 +10,6 @@
 2. reverse match logic, listing only words not found in store, to investigate/evaluate additions to the corpus.
 6. Add source information to words, and make it possible to dump words out, and allow it to be filtered by source.
     --source flag.
+9. Add debug option to print out raw dict info
+7. --print-words option; should allow to be combined with the --source flag.
+8. --words-count option; should allow to be combined with the --source flag.
