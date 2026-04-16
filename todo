@@ -1,14 +1,14 @@
 ## To-do
 
 1. synonyms should have their own JSON file, making a lookup simple and fast.
-2. reverse match logic, listing only words not found in store, to investigate/evaluate additions to the corpus.
-4. Get rid of 'none'; set default value to False, no-value would result in None, valid entries would then be not None.
-6. Add source information to words, and make it possible to dump words out, and allow it to be filtered by source. 
-    --source flag.
-    --dump-words option.
-    --word-count option; should allow to be combined with the --source flag.
+7. --dump-words option; should allow to be combined with the --source flag.
+8. --word-count option; should allow to be combined with the --source flag.
 
 ## Done
 
 5. Usage of --invert-match should only be possible when --silent is on; done
 3. non-interactive addwords, using --input-file with <word>:<meaning>, one per line; done
+4. Get rid of 'none'; set default value to False, no-value would result in None, valid entries would then be not None.
+2. reverse match logic, listing only words not found in store, to investigate/evaluate additions to the corpus.
+6. Add source information to words, and make it possible to dump words out, and allow it to be filtered by source.
+    --source flag.

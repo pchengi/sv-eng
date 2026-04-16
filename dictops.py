@@ -384,7 +384,7 @@ aparser.add_argument('--restore-local', action='store_true',help='restores local
 aparser.add_argument('-m','--multi-value', nargs='?', default=False,help='multiple words can be looked up while only doing a single read of the corpus; needs a comma-seperated list of words, or the use of the --input-file option.')
 aparser.add_argument('-i','--input-file', nargs=1, default=False,help='input file containing words for bulk-lookup, addition, etc.')
 aparser.add_argument('--invert-match', action='store_true',default=False,help='lists only words that are not present in the corpus. Requires the use of --silent.')
-aparser.add_argument('--source',default=None,nargs='?',help='used to specify a source when adding new words to the corpus.')
+aparser.add_argument('--source',default=None,help='used to specify a source when adding new words to the corpus.')
 args=aparser.parse_args()
 removeword=args.remove
 xmlread=args.xml_parse
@@ -401,8 +401,6 @@ inputfile=args.input_file
 bulklookup=args.multi_value
 invertmatch=args.invert_match
 sourceval=args.source
-print(listword)
-sys.exit(-1)
 if invertmatch:
     if not silent:
         print("--invert-match requires the usage of the --silent flag.")
