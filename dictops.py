@@ -11,16 +11,16 @@ import os
 import urllib.request, urllib.parse, urllib.error
 
 class DictOps:
-    def __init__(self,svexdxfinp,engxdxfinp,lpjson,corpusjson,engjson,txtout,lookupout,localjson,dirpath):
+    def __init__(self,dirpath):
         self.dirpath=dirpath
-        self.svexdxfinp=svexdxfinp
-        self.engxdxfinp=engxdxfinp
-        self.localjson=localjson
-        self.corpusjson=corpusjson
-        self.engjson=engjson
-        self.lpjson=lpjson
-        self.txtout=txtout
-        self.lookupout=lookupout
+        self.svexdxfinp=self.preppath('sveeng.xdxf')
+        self.engxdxfinp=self.preppath('engsve.xdxf')
+        self.localjson=self.preppath('localwords.json')
+        self.corpusjson=self.preppath('sve-eng.json')
+        self.engjson=self.preppath('eng-sve.json')
+        self.lpjson=self.preppath('lp.json')
+        self.txtout=self.preppath('xdxf.txt')
+        self.lookupout=self.preppath('looked-up.txt')
         self.mydict=OrderedDict()
         self.engdict=OrderedDict()
         self.localdict=OrderedDict()
@@ -29,6 +29,13 @@ class DictOps:
         self.deffiles.append(dirpath+'/engsve.xdxf')
         self.deffiles.append(dirpath+'/sveeng.xdxf')
         self.checksumfile=dirpath+'/sha256sums'
+
+    def preppath(self,filename):
+        namewithpath=self.dirpath
+        namewithpath+='/'
+        namewithpath+=filename
+        #print("Filename incoming: %s: Outgoing: %s"%(filename,namewithpath))
+        return namewithpath
 
     def setupRef(self,refdict):
         refdict['source']='local'
@@ -373,7 +380,7 @@ class DictOps:
                     print("Word %s is present only locally"%(key))
 
 dirpath = os.path.dirname(os.path.realpath(__file__))
-myobj=DictOps(dirpath+'/sveeng.xdxf',dirpath+'/engsve.xdxf',dirpath+'/lp.json',dirpath+'/sve-eng.json',dirpath+'/eng-sve.json',dirpath+'/xdxf.txt',dirpath+'/looked-up.txt',dirpath+'/localwords.json',dirpath)
+myobj=DictOps(dirpath)
 aparser=argparse.ArgumentParser(description='A tool to setup a Swedish-English dictionary and English-Swedish word translator, seeded with words from the Folkets Lexikon, provided by KTH. You can perform offline dictionary lookups (Swedish to English), translations (English to Swedish), and even add (or delete) additional words into the corpus.')
 aparser.add_argument('-r', '--remove',type=str,default=False,nargs='?',help='remove the specified word from the word corpus.') #remove
 aparser.add_argument('-x','--xml-parse', default=False, action='store_true',help='reread XDXF file and write out a new text-listing.') #read xml and write-out txt
