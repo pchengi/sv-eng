@@ -347,15 +347,15 @@ class DictOps:
                     self.mydict[toadd]['synonyms'].append(newsyn)
             print(resp)
 
-    def chainfeeder(self,listorfile):
-        if type(listorfile) == list:
+    def chainfeeder(self,stringorfile):
+        if type(stringorfile) == list:
             with open(listorfile[0]) as inp:
                 lines=inp.readlines()
             for line in lines:
                 word=line.split('\n')[0].lower()
                 yield word
         else:
-            words=listorfile.split(',')
+            words=stringorfile.split(',')
             for word in words:
                 yield word
  
@@ -370,37 +370,39 @@ class DictOps:
 dirpath = os.path.dirname(os.path.realpath(__file__))
 myobj=DictOps(dirpath+'/sveeng.xdxf',dirpath+'/engsve.xdxf',dirpath+'/lp.json',dirpath+'/sve-eng.json',dirpath+'/eng-sve.json',dirpath+'/xdxf.txt',dirpath+'/looked-up.txt',dirpath+'/localwords.json',dirpath)
 aparser=argparse.ArgumentParser(description='A tool to setup a Swedish-English dictionary and English-Swedish word translator, seeded with words from the Folkets Lexikon, provided by KTH. You can perform offline dictionary lookups (Swedish to English), translations (English to Swedish), and even add (or delete) additional words into the corpus.')
-aparser.add_argument('-r', type=str,default='none',help='remove the specified word from the word corpus.') #remove
-aparser.add_argument('-x', type=str,nargs='?',default='none',help='reread XDXF file and write out a new text-listing.') #read xml and write-out txt
-aparser.add_argument('-t', default=False,nargs='?',help='translate from English to Swedish.') #translate word
-aparser.add_argument('-a', default=False,nargs='?',help='attempt lookup and if not found, manually add to the word corpus, if it was not present already. --input-file can be used for non-interactive additions.') #lookup and add a new word if not found
-aparser.add_argument('-l', type=str,default='none',help='lookup word and return even words that are a partial match. e.g looking up stenar will even return sten as a potential match. Exact matches if found are also logged to looked-up.txt, for easy reference/history.') #list word meanings if found
+aparser.add_argument('-r', '--remove',type=str,default=False,help='remove the specified word from the word corpus.') #remove
+aparser.add_argument('-x','--xml-parse', default=False, action='store_true',help='reread XDXF file and write out a new text-listing.') #read xml and write-out txt
+aparser.add_argument('-t', '--translate-to-eng', default=False,nargs='?',help='translate from English to Swedish.') #translate word
+aparser.add_argument('-a', '--add', default=False,nargs='?',help='attempt lookup and if not found, manually add to the word corpus, if it was not present already. --input-file can be used for non-interactive additions.') #lookup and add a new word if not found
+aparser.add_argument('-l', '--lookup', type=str,default=False,help='lookup word and return even words that are a partial match. e.g looking up stenar will even return sten as a potential match. Exact matches if found are also logged to looked-up.txt, for easy reference/history.') #list word meanings if found
 aparser.add_argument('-e', '--exact-word', default=False, nargs='?',help='lookup word and only return a result if a perfect match was found.') #list word meanings if found
-aparser.add_argument("-u", "--update",type=str,nargs='?',default='none',help='update the XDXF file, from KTH. Requires a working internet connection.') #update file
-aparser.add_argument('-c', type=str,nargs='?',default='none',help='list words you have added locally, that can be potentially contributed the to Lexikon project.') #update file
+aparser.add_argument("-u", "--update",default=False,action='store_true',help='update the XDXF file, from KTH. Requires a working internet connection.') #update file
+aparser.add_argument('-c', '--contributable', default=False,action='store_true',help='list words you have added locally, that can be potentially contributed the to Lexikon project.') #update file
 aparser.add_argument('-s', '--silent', default=False,action='store_true',help='the looked up word is echoed, instead of showing the meaning, if the word exists in the corpus.')
-aparser.add_argument('--backup-local', action='store_true',help='backs up your locally added words into localwords.json.')
+aparser.add_argument('-b','--backup-local', action='store_true',help='backs up your locally added words into localwords.json.')
 aparser.add_argument('--restore-local', action='store_true',help='restores local words to the corpus from localwords.json.')
-aparser.add_argument('-b','--bulk-lookup', nargs='?', default=False,help='multiple words can be looked up while only doing a single read of the corpus; needs a comma-seperated list of words, or the use of the --input-file option.')
+aparser.add_argument('-m','--multi-value', nargs='?', default=False,help='multiple words can be looked up while only doing a single read of the corpus; needs a comma-seperated list of words, or the use of the --input-file option.')
 aparser.add_argument('-i','--input-file', nargs=1, default=False,help='input file containing words for bulk-lookup, addition, etc.')
 aparser.add_argument('--invert-match', action='store_true',default=False,help='lists only words that are not present in the corpus. Requires the use of --silent.')
 aparser.add_argument('--source',default=None,nargs='?',help='used to specify a source when adding new words to the corpus.')
 args=aparser.parse_args()
-removeword=args.r
-xmlread=args.x
-translateword=args.t
-addword=args.a
-listword=args.l
+removeword=args.remove
+xmlread=args.xml_parse
+translateword=args.translate_to_eng
+addword=args.add
+listword=args.lookup
 exactword=args.exact_word
 update=args.update
-contribute=args.c
+contribute=args.contributable
 backuplocalwords=args.backup_local
 restorelocalwords=args.restore_local
 silent=args.silent
 inputfile=args.input_file
-bulklookup=args.bulk_lookup
+bulklookup=args.multi_value
 invertmatch=args.invert_match
 sourceval=args.source
+print(listword)
+sys.exit(-1)
 if invertmatch:
     if not silent:
         print("--invert-match requires the usage of the --silent flag.")
@@ -412,29 +414,24 @@ if bulklookup is not False:
             sys.exit(-1)
         bulklookup=inputfile
         
-if update != 'none':
+if update:
     myobj.updateXdxffile()
     sys.exit(0)
 
-if xmlread != 'none':
+if xmlread:
     myobj.readXdxf()
     sys.exit(0)
 
 if addword is not False:
     myobj.readStore(myobj.corpusjson)
     if addword is None:
-        if inputfile is False:
+        if bulklookup is False:
+            print("--add requires a word to be added, or the usage of the --multi-value flag.")
+            sys.exit(-1)
             print("-a requires a word to be specified as argument, or the --input-file option used to specify an input-file with words and meanings, for non-interactive additions.")
             sys.exit(-1)
-        try:
-            with open (inputfile[0],'r') as inp:
-                lines=inp.readlines()
-        except(FileNotFoundError):
-            print("File not found: %s"%inputfile[0])
-            sys.exit(-1)
-        for line in lines:
-            cleanedline=line.split('\n')[0]
-            word,meaning=cleanedline.split(':')
+        for addline in myobj.chainfeeder(bulklookup):
+            word,meaning=addline.split(':')
             if meaning == '':
                 meaning = 'placeholder_text'
             myobj.addWord(word,meaning,True,sourceval)
@@ -444,13 +441,21 @@ if addword is not False:
     myobj.writeStore(myobj.corpusjson)
     sys.exit(0)
 
-if removeword != 'none':
+if removeword is not False:
     myobj.readStore(myobj.corpusjson)
+    if removeword is None:
+        if bulklookup is False:
+            print("--remove requires a word to be removed, or the usage of the --multi-value flag.")
+            sys.exit(-1)
+        for removeword in myobj.chainfeeder(bulklookup):
+            myobj.removeWord(removeword,True)
+        myobj.writeStore(myobj.corpusjson)
+        sys.exit(0)
     myobj.removeWord(removeword,silent)
     myobj.writeStore(myobj.corpusjson)
     sys.exit(0)
 
-if listword != 'none':
+if listword is not False:
     ret=myobj.listWord(listword,silent,recurse=1)
     if ret != 0:
         myobj.listWordstartswith(listword)
@@ -459,7 +464,7 @@ if listword != 'none':
 if exactword is not False:
     if exactword is None:
         if bulklookup is False:
-            print("--exact-word requires a word to be looked up, or the usage of the --bulk-lookup flag, indicating multi-word lookup.")
+            print("--exact-word requires a word to be looked up, or the usage of the --multi-value flag.")
             sys.exit(-1)
         myobj.readStore(myobj.corpusjson)
         for lookup in myobj.chainfeeder(bulklookup):
@@ -516,7 +521,7 @@ if translateword is not False:
             print("%s"%translateword)
     sys.exit(ret)
 
-if contribute != 'none':
+if contribute:
     myobj.listLocalwords(True)
     sys.exit(0)
 if backuplocalwords:
