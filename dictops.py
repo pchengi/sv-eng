@@ -472,10 +472,10 @@ if addword is not False:
             word,meaning=addline.split(':')
             if meaning == '':
                 meaning = 'placeholder_text'
-            myobj.addWord(word,meaning,True,sourceval)
+            myobj.addWord(word,meaning,noninteractive=True,source=sourceval)
         myobj.writeStore(myobj.corpusjson)
         sys.exit(0)
-    myobj.addWord(addword,False,sourceval)
+    myobj.addWord(addword,meaning=None,noninteractive=False,source=sourceval)
     myobj.writeStore(myobj.corpusjson)
     sys.exit(0)
 
