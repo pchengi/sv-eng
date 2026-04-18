@@ -122,7 +122,7 @@ class DictOps:
         if self.engdict.__contains__(totrans):
             if silent:
                 return(0)
-            print("Word %s exists in the English to Swedish corpus"%(totrans))
+            print("%s:"%(totrans))
             self.recordLookup(totrans,self.engdict[totrans]['definitions'])
             ctr=1
             for meaning in self.engdict[totrans]['definitions']:
@@ -143,10 +143,9 @@ class DictOps:
             if silent:
                 return(0)
             if debug:
-                print("looking up %s"%tolist)
                 print(self.mydict[tolist])
                 return(0)
-            print("Word %s exists in the corpus"%(tolist))
+            print("%s:"%(tolist))
             self.recordLookup(tolist,self.mydict[tolist]['definitions'])
             ctr=1
             if len(self.mydict[tolist]['definitions']) > 0:
@@ -159,7 +158,7 @@ class DictOps:
                 for syn in self.mydict[tolist]['synonyms']:
                     syns+="%s,"%syn
                 print(syns.rstrip(','),end='')
-                print()
+                print("\n")
                 return(0)
             elif len(self.mydict[tolist]['synonyms']) > 0:
                 for syn in self.mydict[tolist]['synonyms']:
@@ -516,7 +515,8 @@ if exactword is not False:
                     print("%s"%lookup)
         sys.exit(0)
     if not silent:
-        print("regular single lookup of word %s"%exactword)
+        if debug:
+            print("regular single lookup of word %s"%exactword)
     myobj.readStore(myobj.corpusjson)
     ret=myobj.listWord(exactword,silent,debug,recurse=0)
     if ret == 0 and invertmatch is False:
